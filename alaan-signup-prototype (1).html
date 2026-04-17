@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alaan Signup Flow — Prototype</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'DM Sans', -apple-system, sans-serif; background: #fff; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+<script type="text/babel">
+const { useState, useRef } = React;
+
+const P = {
+  brand: "#6C5CE7", brandSoft: "#F3F0FF", brandMid: "#DDD6FE",
+  dark: "#16192C", text: "#475569", light: "#94A3B8",
+  border: "#E2E8F0", bg: "#FAFAFF", white: "#FFF",
+  green: "#10B981", greenBg: "#ECFDF5",
+};
+
+function Slide({ children, show }) {
+  return <div style={{ maxHeight: show ? 3000 : 0, opacity: show ? 1 : 0, transition: "all 0.45s cubic-bezier(0.22,1,0.36,1)", overflow: "hidden", marginTop: show ? 22 : 0 }}>{children}</div>;
+}
+
+function Dots({ current, total }) {
+  return <div style={{ display: "flex", gap: 6, justifyContent: "center", marginBottom: 32 }}>
+    {Array.from({ length: total }, (_, i) => <div key={i} style={{ width: i === current ? 28 : 8, height: 8, borderRadius: 4, background: i <= current ? P.brand : P.border, transition: "all 0.3s" }} />)}
+  </div>;
+}
+
+function RadioCard({ label, sub, icon, selected, onClick }) {
+  return <button onClick={onClick} style={{
+    display: "flex", alignItems: "center", gap: 14, width: "100%", padding: "14px 16px",
+    border: `2px solid ${selected ? P.brand : P.border}`, borderRadius: 12,
+    background: selected ? P.brandSoft : P.white, cursor: "pointer", textAlign: "left", outline: "none",
+    boxShadow: selected ? `0 0 0 3px ${P.brandSoft}` : "0 1px 3px rgba(0,0,0,0.03)", transition: "all 0.15s",
+  }}>
+    {icon && <span style={{ fontSize: 20, width: 32, textAlign: "center", flexShrink: 0 }}>{icon}</span>}
+    <div style={{ flex: 1 }}>
+      <div style={{ fontSize: 14, fontWeight: 600, color: P.dark, lineHeight: 1.4 }}>{label}</div>
+      {sub && <div style={{ fontSize: 12, color: P.text, marginTop: 3, lineHeight: 1.5 }}>{sub}</div>}
+    </div>
+    <div style={{ width: 20, height: 20, borderRadius: 10, border: `2px solid ${selected ? P.brand : "#CBD5E1"}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+      {selected && <div style={{ width: 10, height: 10, borderRadius: 5, background: P.brand }} />}
+    </div>
+  </button>;
+}
+
+function CheckCard({ label, sub, icon, checked, onClick }) {
+  return <button onClick={onClick} style={{
+    display: "flex", alignItems: "center", gap: 14, width: "100%", padding: "13px 16px",
+    border: `2px solid ${checked ? P.brand : P.border}`, borderRadius: 12,
+    background: checked ? P.brandSoft : P.white, cursor: "pointer", textAlign: "left", outline: "none", transition: "all 0.15s",
+  }}>
+    {icon && <span style={{ fontSize: 18, width: 28, textAlign: "center", flexShrink: 0 }}>{icon}</span>}
+    <div style={{ flex: 1 }}>
+      <div style={{ fontSize: 13, fontWeight: 600, color: P.dark, lineHeight: 1.4 }}>{label}</div>
+      {sub && <div style={{ fontSize: 11, color: P.text, marginTop: 2, lineHeight: 1.4 }}>{sub}</div>}
+    </div>
+    <div style={{ width: 20, height: 20, borderRadius: 4, border: `2px solid ${checked ? P.brand : "#CBD5E1"}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, background: checked ? P.brand : P.white }}>
+      {checked && <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2.5 6L5 8.5L9.5 4" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+    </div>
+  </button>;
+}
+
+function Hook({ text }) {
+  if (!text) return null;
+  return <div style={{ display: "flex", gap: 10, background: P.greenBg, borderRadius: 10, padding: "11px 14px", marginTop: 12, border: `1px solid ${P.green}22` }}>
+    <span style={{ fontSize: 14, flexShrink: 0 }}>✨</span>
+    <p style={{ fontSize: 13, color: "#065F46", margin: 0, lineHeight: 1.5, fontWeight: 500 }}>{text}</p>
+  </div>;
+}
+
+function Inp({ label, placeholder, type = "text", value, onChange, helper, pre }) {
+  return <div style={{ marginBottom: 18 }}>
+    <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: P.dark, marginBottom: 6 }}>{label}</label>
+    <div style={{ display: "flex", border: `1.5px solid ${P.border}`, borderRadius: 10, overflow: "hidden", background: P.white }}>
+      {pre && <div style={{ padding: "11px 12px", background: P.bg, borderRight: `1px solid ${P.border}`, fontSize: 14, color: P.text, whiteSpace: "nowrap" }}>{pre}</div>}
+      <input type={type} placeholder={placeholder} value={value} onChange={onChange}
+        style={{ flex: 1, padding: "11px 14px", border: "none", fontSize: 14, color: P.dark, outline: "none", background: "transparent", width: "100%" }} />
+    </div>
+    {helper && <div style={{ fontSize: 12, color: P.light, marginTop: 4 }}>{helper}</div>}
+  </div>;
+}
+
+function Sel({ label, options, value, onChange }) {
+  return <div style={{ marginBottom: 18 }}>
+    <label style={{ display: "block", fontSize: 13, fontWeight: 600, color: P.dark, marginBottom: 6 }}>{label}</label>
+    <select value={value} onChange={onChange} style={{ width: "100%", padding: "11px 14px", border: `1.5px solid ${P.border}`, borderRadius: 10, fontSize: 14, color: value ? P.dark : P.light, background: P.white, outline: "none", appearance: "none" }}>
+      <option value="">Select</option>
+      {options.map(o => <option key={o} value={o}>{o}</option>)}
+    </select>
+  </div>;
+}
+
+function Btn({ children, onClick, disabled, v = "primary", full = true }) {
+  const pr = v === "primary";
+  return <button onClick={onClick} disabled={disabled} style={{
+    width: full ? "100%" : "auto", padding: pr ? "13px 28px" : "12px 20px", borderRadius: 10,
+    border: pr ? "none" : `1.5px solid ${P.border}`, background: pr ? (disabled ? "#B8B0E8" : P.brand) : P.white,
+    color: pr ? P.white : P.dark, fontSize: 14, fontWeight: 600, cursor: disabled ? "not-allowed" : "pointer",
+    outline: "none", boxShadow: pr && !disabled ? "0 2px 12px rgba(108,92,231,0.2)" : "none", transition: "all 0.15s",
+  }}>{children}</button>;
+}
+
+function OTP() {
+  const [v, setV] = useState(["", "", "", "", "", ""]);
+  const refs = useRef([]);
+  const set = (i, c) => { if (c.length > 1) return; const n = [...v]; n[i] = c; setV(n); if (c && i < 5) refs.current[i + 1]?.focus(); };
+  return <div style={{ display: "flex", gap: 10, justifyContent: "center", margin: "28px 0" }}>
+    {v.map((c, i) => <input key={i} ref={el => refs.current[i] = el} type="text" inputMode="numeric" maxLength={1} value={c} onChange={e => set(i, e.target.value)}
+      style={{ width: 48, height: 56, textAlign: "center", fontSize: 22, fontWeight: 700, border: `2px solid ${c ? P.brand : P.border}`, borderRadius: 10, outline: "none", color: P.dark }} />)}
+  </div>;
+}
+
+function Modal({ onBiz, onBack }) {
+  return <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.35)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 200 }}>
+    <div style={{ background: P.white, borderRadius: 20, padding: "36px 30px", maxWidth: 420, width: "90%", textAlign: "center", animation: "pop 0.3s cubic-bezier(0.22,1,0.36,1)" }}>
+      <div style={{ fontSize: 48, marginBottom: 14 }}>🏢</div>
+      <h3 style={{ fontSize: 20, fontWeight: 700, color: P.dark, margin: "0 0 10px" }}>Alaan is designed for businesses</h3>
+      <p style={{ fontSize: 14, color: P.text, margin: "0 0 12px", lineHeight: 1.6 }}>Alaan helps companies issue corporate cards, automate expense management, and process vendor payments from a single platform.</p>
+      <div style={{ display: "flex", gap: 12, justifyContent: "center", margin: "18px 0 24px", flexWrap: "wrap" }}>
+        {[["💳", "Corporate Cards"], ["📊", "Expenses"], ["🔒", "Controls"], ["💸", "Payments"], ["🌍", "Global"], ["🏷", "Cashback"]].map(([ic, lb]) =>
+          <div key={lb} style={{ textAlign: "center", width: 64 }}>
+            <div style={{ width: 40, height: 40, borderRadius: 10, background: P.brandSoft, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, margin: "0 auto 4px" }}>{ic}</div>
+            <div style={{ fontSize: 10, color: P.text, fontWeight: 500, lineHeight: 1.3 }}>{lb}</div>
+          </div>
+        )}
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <Btn onClick={onBiz}>I'm signing up for my business</Btn>
+        <Btn v="secondary" onClick={onBack}>Go back</Btn>
+      </div>
+    </div>
+    <style>{`@keyframes pop{from{opacity:0;transform:scale(.95) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}`}</style>
+  </div>;
+}
+
+function Left({ step }) {
+  const stories = [
+    { stat: "200+ hours saved weekly", q: "None of the other players we evaluated provided the flexibility to keep our SOPs intact while streamlining expenses.", who: "Murtuza Unchwaniwala", title: "CFO, Al Barari Real Estate" },
+    { stat: "80+ hours saved a week", q: "Alaan transformed the way money flows and is controlled at Washmen.", who: "Jad Halaoui", title: "Cofounder & COO, Washmen" },
+    { stat: "Reconciliation cut 75%", q: "All expenses are now made directly using Alaan cards. My life as a finance manager is so much better.", who: "Abhishek Tak", title: "Head of Finance, GuestReady" },
+  ];
+  const s = stories[step % stories.length];
+  return <div style={{ flex: "0 0 44%", background: "linear-gradient(155deg,#F8F7FF 0%,#EDE8FF 50%,#E4DEFF 100%)", padding: "40px 28px", display: "flex", flexDirection: "column", justifyContent: "space-between", minHeight: "100vh", boxSizing: "border-box", position: "relative", overflow: "hidden" }}>
+    <div style={{ position: "absolute", top: -100, right: -100, width: 240, height: 240, borderRadius: "50%", background: "rgba(108,92,231,0.05)" }} />
+    <div>
+      <div style={{ fontSize: 13, fontWeight: 700, color: P.dark, letterSpacing: 2, marginBottom: 8 }}>ALAAN</div>
+      <h1 style={{ fontSize: 22, fontWeight: 700, color: P.dark, margin: "0 0 4px", lineHeight: 1.3 }}>Smarter spending for your business</h1>
+      <p style={{ fontSize: 13, color: P.text, margin: 0 }}>Trusted by 3,000+ companies across the Middle East</p>
+    </div>
+    <div style={{ background: P.white, borderRadius: 16, padding: 22, boxShadow: "0 4px 20px rgba(108,92,231,0.06)" }}>
+      <div style={{ display: "inline-block", background: P.brand, color: P.white, padding: "4px 12px", borderRadius: 8, fontSize: 12, fontWeight: 600, marginBottom: 14 }}>{s.stat}</div>
+      <p style={{ fontSize: 13, color: P.dark, lineHeight: 1.7, margin: "0 0 14px", fontStyle: "italic" }}>"{s.q}"</p>
+      <div style={{ borderTop: `1px solid ${P.border}`, paddingTop: 12 }}>
+        <div style={{ fontSize: 13, fontWeight: 600, color: P.dark }}>{s.who}</div>
+        <div style={{ fontSize: 12, color: P.text }}>{s.title}</div>
+      </div>
+    </div>
+    <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+      {[["💳", "Corporate Cards", "Instant virtual and physical cards"], ["📊", "Expense Management", "Automated tracking and approvals"], ["🌍", "Global Payments", "Send to 130+ countries"], ["🏷", "1.5% Cashback", "On every card transaction"]].map(([ic, t, d]) =>
+        <div key={t} style={{ background: "rgba(255,255,255,0.7)", borderRadius: 10, padding: "9px 12px", display: "flex", gap: 8, alignItems: "center" }}>
+          <span style={{ fontSize: 15 }}>{ic}</span>
+          <div><div style={{ fontSize: 11, fontWeight: 600, color: P.dark }}>{t}</div><div style={{ fontSize: 10, color: P.text }}>{d}</div></div>
+        </div>
+      )}
+    </div>
+  </div>;
+}
+
+const primaryHooks = {
+  "Corporate cards with spend controls": "Issue instant virtual and physical cards to your team. Set per-card limits, restrict merchant categories, and earn 1.5% cashback on every transaction.",
+  "Expense tracking and approvals": "Receipts are captured and matched automatically. Approval workflows route to the right manager. Close your books faster with zero manual work.",
+  "Vendor and bill payments": "Pay suppliers in 130+ countries from a single dashboard. Competitive exchange rates. Unlimited transfers with full audit trail.",
+  "All of the above": "Most businesses use the complete suite. Corporate cards, automated expenses, and vendor payments, all connected from day one.",
+};
+
+const secondaryFeatures = [
+  { label: "Corporate cards with spend controls", sub: "Custom limits per card, instant issue, 1.5% cashback", icon: "💳" },
+  { label: "Expense tracking and approvals", sub: "Auto receipt matching, configurable approval workflows", icon: "📊" },
+  { label: "Vendor and bill payments", sub: "Pay in 130+ countries with competitive FX rates", icon: "💸" },
+  { label: "Cross-border payments and transfers", sub: "Unlimited international transfers, no hidden fees", icon: "🌍" },
+  { label: "Real-time spend visibility", sub: "Live dashboards, team budgets, instant transaction alerts", icon: "👁" },
+  { label: "Accounting integrations", sub: "Auto-sync with Xero, SAP, QuickBooks, Odoo, and more", icon: "🔗" },
+];
+
+const deptHooks = {
+  "Finance & Accounting": "Alaan connects directly to your accounting software. Auto-reconciliation, GL mapping, and real-time reporting built in.",
+  "Operations & Administration": "Issue and manage cards for your entire team from one dashboard. Set budgets, track spending, and enforce policies automatically.",
+  "Management & Leadership": "Get complete visibility into company spending. Real-time dashboards, department budgets, and approval workflows you control.",
+  "Sales & Marketing": "Dedicated cards for ad spend, travel, and client expenses. Track ROI by campaign or project with automatic categorisation.",
+  "Human Resources": "Streamline employee expense reimbursements and onboarding. Issue cards on day one with pre-set limits.",
+  "Other": "Alaan adapts to how your team works. We'll help you find the right setup.",
+};
+
+const roleHooks = {
+  "Founder / CEO / Owner": "Join 3,000+ founders and business owners using Alaan to manage company spending and save time.",
+  "C-Suite / VP / Director": "Alaan gives you the visibility and control you need across departments, entities, and teams.",
+  "Head of Department / Manager": "Manage your team's spending with dedicated budgets, approval workflows, and real-time alerts.",
+  "Team Member": "Get your own company card with pre-set limits. No more paying out of pocket and waiting for reimbursement.",
+  "Other": "We'll tailor your Alaan experience based on how you work.",
+};
+
+const methodHooks = {
+  "Petty cash from the office": "Companies that switch from petty cash to Alaan see 3x better spend visibility within the first week.",
+  "Employees pay and get reimbursed": "With Alaan cards, your team stops paying out of pocket. Reimbursement cycles and manual claims are eliminated.",
+  "A shared company card": "Issue individual cards with custom limits for each team member. You'll always know who spent what and why.",
+  "Individual company cards with limited controls": "Alaan adds the controls your current cards are missing. Real-time limits, merchant restrictions, and instant alerts.",
+  "No formal process yet": "You're starting from a clean slate. Alaan makes it straightforward to set up expense management for the first time.",
+};
+
+function App() {
+  const [step, setStep] = useState(0);
+  const [modal, setModal] = useState(false);
+  const [f, setF] = useState({
+    name: "", email: "", mobile: "",
+    intent: "", primary: "", secondary: [],
+    dept: "", role: "", method: "",
+    co: "", size: "", pw: "",
+  });
+  const u = (k, v) => setF(prev => ({ ...prev, [k]: v }));
+  const toggleSec = (label) => {
+    setF(prev => ({
+      ...prev,
+      secondary: prev.secondary.includes(label)
+        ? prev.secondary.filter(x => x !== label)
+        : [...prev.secondary, label]
+    }));
+  };
+
+  const isBiz = f.intent === "For my business";
+  const isPersonal = f.intent === "For personal use";
+
+  const deptOpts = [
+    { label: "Finance & Accounting", icon: "📋" },
+    { label: "Operations & Administration", icon: "⚙️" },
+    { label: "Management & Leadership", icon: "📈" },
+    { label: "Sales & Marketing", icon: "📣" },
+    { label: "Human Resources", icon: "👥" },
+    { label: "Other", icon: "💼" },
+  ];
+
+  const roleOpts = [
+    { label: "Founder / CEO / Owner", icon: "👑" },
+    { label: "C-Suite / VP / Director", icon: "🏛" },
+    { label: "Head of Department / Manager", icon: "📊" },
+    { label: "Team Member", icon: "👤" },
+    { label: "Other", icon: "💼" },
+  ];
+
+  const methodOpts = [
+    { label: "Petty cash from the office", sub: "Cash withdrawals for daily business expenses", icon: "💵" },
+    { label: "Employees pay and get reimbursed", sub: "Team uses personal cards, company reimburses later", icon: "🔄" },
+    { label: "A shared company card", sub: "One card used across the team", icon: "💳" },
+    { label: "Individual company cards with limited controls", sub: "Separate cards but minimal visibility or limits", icon: "🃏" },
+    { label: "No formal process yet", sub: "Still setting things up", icon: "🔧" },
+  ];
+
+  const primaryOpts = [
+    { label: "Corporate cards with spend controls", sub: "Issue instant cards to your team with custom limits and 1.5% cashback on every transaction", icon: "💳" },
+    { label: "Expense tracking and approvals", sub: "Automated receipt matching, configurable approval workflows, and real-time reporting", icon: "📊" },
+    { label: "Vendor and bill payments", sub: "Pay local and international suppliers from one platform. 130+ countries supported.", icon: "💸" },
+    { label: "All of the above", sub: "Most businesses use the complete suite from day one", icon: "✅" },
+  ];
+
+  const reset = () => {
+    setStep(0);
+    setF({ name: "", email: "", mobile: "", intent: "", primary: "", secondary: [], dept: "", role: "", method: "", co: "", size: "", pw: "" });
+  };
+
+  const screens = [
+    // 0: Identity
+    () => <>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+        <div style={{ background: P.brandSoft, color: P.brand, fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 6 }}>Step 1 of 6</div>
+      </div>
+      <h2 style={{ fontSize: 22, fontWeight: 700, color: P.dark, margin: "0 0 4px" }}>Tell us about yourself</h2>
+      <p style={{ fontSize: 13, color: P.text, margin: "0 0 24px" }}>This takes less than 2 minutes</p>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "11px 14px", background: P.bg, borderRadius: 10, marginBottom: 18, border: `1px solid ${P.border}` }}>
+        <span style={{ fontSize: 18 }}>🇦🇪</span>
+        <span style={{ fontSize: 14, fontWeight: 500, color: P.dark }}>UAE - United Arab Emirates</span>
+      </div>
+      <Inp label="Full Name" placeholder="Enter your full name" value={f.name} onChange={e => u("name", e.target.value)} />
+      <Inp label="Work Email" placeholder="you@company.com" value={f.email} onChange={e => u("email", e.target.value)} helper="A verification code will be sent to this email" />
+      <Inp label="Mobile Number" placeholder="Enter your number" value={f.mobile} onChange={e => u("mobile", e.target.value)} pre="+971" helper="A verification code will be sent to this number" />
+      <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
+        <Btn full={false} onClick={() => setStep(1)} disabled={!f.name || !f.email || !f.mobile}>Continue</Btn>
+      </div>
+    </>,
+
+    // 1: Mobile OTP
+    () => <div style={{ textAlign: "center" }}>
+      <div style={{ fontSize: 15, fontWeight: 700, color: P.dark, letterSpacing: 2, marginBottom: 28 }}>ALAAN</div>
+      <h2 style={{ fontSize: 22, fontWeight: 700, color: P.dark, margin: "0 0 8px" }}>Verify your mobile number</h2>
+      <p style={{ fontSize: 13, color: P.text }}>Enter the 6-digit code sent to +971 {f.mobile || "XX XXX XXXX"}</p>
+      <OTP />
+      <p style={{ fontSize: 12, color: P.light }}>Code expires in 00:54 · <span style={{ color: P.brand, cursor: "pointer", fontWeight: 500 }}>Resend</span></p>
+      <p style={{ fontSize: 12, color: P.light, marginTop: 4 }}>or <span style={{ color: P.brand, cursor: "pointer", fontWeight: 500 }}>Get code on WhatsApp</span></p>
+      <div style={{ display: "flex", justifyContent: "space-between", marginTop: 24 }}>
+        <Btn v="secondary" full={false} onClick={() => setStep(0)}>Back</Btn>
+        <Btn full={false} onClick={() => setStep(2)}>Verify</Btn>
+      </div>
+    </div>,
+
+    // 2: Email OTP
+    () => <div style={{ textAlign: "center" }}>
+      <div style={{ fontSize: 15, fontWeight: 700, color: P.dark, letterSpacing: 2, marginBottom: 28 }}>ALAAN</div>
+      <h2 style={{ fontSize: 22, fontWeight: 700, color: P.dark, margin: "0 0 8px" }}>Verify your email</h2>
+      <p style={{ fontSize: 13, color: P.text }}>Enter the 6-digit code sent to {f.email || "you@company.com"}</p>
+      <OTP />
+      <p style={{ fontSize: 12, color: P.light }}>Code expires in 00:54 · <span style={{ color: P.brand, cursor: "pointer", fontWeight: 500 }}>Resend</span></p>
+      <div style={{ display: "flex", justifyContent: "space-between", marginTop: 24 }}>
+        <Btn v="secondary" full={false} onClick={() => setStep(1)}>Back</Btn>
+        <Btn full={false} onClick={() => setStep(3)}>Verify</Btn>
+      </div>
+    </div>,
+
+    // 3: Intent + Primary use case + Secondary interests
+    () => <>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+        <div style={{ background: P.brandSoft, color: P.brand, fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 6 }}>Step 2 of 6</div>
+        <span style={{ fontSize: 12, color: P.light }}>Personalise your experience</span>
+      </div>
+      <h2 style={{ fontSize: 22, fontWeight: 700, color: P.dark, margin: "0 0 4px" }}>What brings you to Alaan?</h2>
+      <p style={{ fontSize: 13, color: P.text, margin: "0 0 20px" }}>This helps us set up the right experience for you</p>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <RadioCard label="For my business" sub="Corporate cards, expense management, vendor payments, and more" icon="💼"
+          selected={f.intent === "For my business"} onClick={() => u("intent", "For my business")} />
+        <RadioCard label="For personal use" sub="Looking for a personal card or credit line" icon="👤"
+          selected={f.intent === "For personal use"} onClick={() => u("intent", "For personal use")} />
+      </div>
+
+      <Slide show={isBiz}>
+        <div style={{ borderTop: `1px solid ${P.border}`, paddingTop: 20 }}>
+          <h3 style={{ fontSize: 16, fontWeight: 700, color: P.dark, margin: "0 0 4px" }}>What is your primary area of interest?</h3>
+          <p style={{ fontSize: 12, color: P.text, margin: "0 0 14px" }}>Select one. You will have access to all features.</p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {primaryOpts.map(o => <RadioCard key={o.label} {...o} selected={f.primary === o.label} onClick={() => u("primary", o.label)} />)}
+          </div>
+          {f.primary && <Hook text={primaryHooks[f.primary]} />}
+        </div>
+      </Slide>
+
+      <Slide show={isBiz && !!f.primary && f.primary !== "All of the above"}>
+        <div style={{ borderTop: `1px solid ${P.border}`, paddingTop: 20 }}>
+          <h3 style={{ fontSize: 16, fontWeight: 700, color: P.dark, margin: "0 0 4px" }}>What else would be useful for your business?</h3>
+          <p style={{ fontSize: 12, color: P.text, margin: "0 0 14px" }}>Select all that apply. This is optional.</p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {secondaryFeatures.filter(x => x.label !== f.primary).map(o =>
+              <CheckCard key={o.label} {...o} checked={f.secondary.includes(o.label)} onClick={() => toggleSec(o.label)} />
+            )}
+          </div>
+        </div>
+      </Slide>
+
+      <div style={{ display: "flex", justifyContent: "space-between", marginTop: 24 }}>
+        <Btn v="secondary" full={false} onClick={() => setStep(2)}>Back</Btn>
+        <Btn full={false} onClick={() => {
+          if (isPersonal) { setModal(true); }
+          else { setStep(4); }
+        }} disabled={!f.intent || (isBiz && !f.primary)}>Continue</Btn>
+      </div>
+
+      {modal && <Modal
+        onBiz={() => { setModal(false); u("intent", "For my business"); }}
+        onBack={() => { setModal(false); u("intent", ""); }}
+      />}
+    </>,
+
+    // 4: Department + Role (progressive disclosure)
+    () => <>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+        <div style={{ background: P.brandSoft, color: P.brand, fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 6 }}>Step 3 of 6</div>
+        <span style={{ fontSize: 12, color: P.light }}>About your role</span>
+      </div>
+      <h2 style={{ fontSize: 22, fontWeight: 700, color: P.dark, margin: "0 0 4px" }}>Which department do you work in?</h2>
+      <p style={{ fontSize: 13, color: P.text, margin: "0 0 20px" }}>This helps us tailor your Alaan experience</p>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {deptOpts.map(o => <RadioCard key={o.label} {...o} selected={f.dept === o.label} onClick={() => u("dept", o.label)} />)}
+      </div>
+      {f.dept && <Hook text={deptHooks[f.dept]} />}
+
+      <Slide show={!!f.dept}>
+        <div style={{ borderTop: `1px solid ${P.border}`, paddingTop: 20 }}>
+          <h3 style={{ fontSize: 16, fontWeight: 700, color: P.dark, margin: "0 0 4px" }}>What best describes your role?</h3>
+          <p style={{ fontSize: 12, color: P.text, margin: "0 0 14px" }}>This helps us understand who we are working with</p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {roleOpts.map(o => <RadioCard key={o.label} {...o} selected={f.role === o.label} onClick={() => u("role", o.label)} />)}
+          </div>
+          {f.role && <Hook text={roleHooks[f.role]} />}
+        </div>
+      </Slide>
+
+      <div style={{ display: "flex", justifyContent: "space-between", marginTop: 24 }}>
+        <Btn v="secondary" full={false} onClick={() => setStep(3)}>Back</Btn>
+        <Btn full={false} onClick={() => setStep(5)} disabled={!f.dept || !f.role}>Continue</Btn>
+      </div>
+    </>,
+
+    // 5: Expense method
+    () => <>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+        <div style={{ background: P.brandSoft, color: P.brand, fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 6 }}>Step 4 of 6</div>
+        <span style={{ fontSize: 12, color: P.light }}>Your current setup</span>
+      </div>
+      <h2 style={{ fontSize: 22, fontWeight: 700, color: P.dark, margin: "0 0 4px" }}>How does your company handle expenses today?</h2>
+      <p style={{ fontSize: 13, color: P.text, margin: "0 0 20px" }}>This helps us recommend the right setup for your business</p>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {methodOpts.map(o => <RadioCard key={o.label} {...o} selected={f.method === o.label} onClick={() => u("method", o.label)} />)}
+      </div>
+      {f.method && <Hook text={methodHooks[f.method]} />}
+
+      <div style={{ display: "flex", justifyContent: "space-between", marginTop: 24 }}>
+        <Btn v="secondary" full={false} onClick={() => setStep(4)}>Back</Btn>
+        <Btn full={false} onClick={() => setStep(6)} disabled={!f.method}>Continue</Btn>
+      </div>
+    </>,
+
+    // 6: Company details
+    () => <>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+        <div style={{ background: P.brandSoft, color: P.brand, fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 6 }}>Step 5 of 6</div>
+      </div>
+      <h2 style={{ fontSize: 22, fontWeight: 700, color: P.dark, margin: "0 0 4px" }}>Tell us about your company</h2>
+      <p style={{ fontSize: 13, color: P.text, margin: "0 0 24px" }}>Almost there</p>
+      <Inp label="Company Name" placeholder="Enter your company name" value={f.co} onChange={e => u("co", e.target.value)} />
+      <Sel label="Company Size" value={f.size} onChange={e => u("size", e.target.value)} options={["1-10 employees", "11-50 employees", "51-200 employees", "201-500 employees", "500+ employees"]} />
+      <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8 }}>
+        <Btn v="secondary" full={false} onClick={() => setStep(5)}>Back</Btn>
+        <Btn full={false} onClick={() => setStep(7)} disabled={!f.co || !f.size}>Continue</Btn>
+      </div>
+    </>,
+
+    // 7: Password
+    () => <>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+        <div style={{ background: P.brandSoft, color: P.brand, fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 6 }}>Step 6 of 6</div>
+      </div>
+      <h2 style={{ fontSize: 22, fontWeight: 700, color: P.dark, margin: "0 0 4px" }}>Secure your account</h2>
+      <p style={{ fontSize: 13, color: P.text, margin: "0 0 24px" }}>Create a password to protect your account</p>
+      <Inp label="Create a password" placeholder="Enter password" type="password" value={f.pw} onChange={e => u("pw", e.target.value)} />
+      <Inp label="Confirm password" placeholder="Re-enter password" type="password" />
+      <div style={{ background: P.bg, borderRadius: 10, padding: "10px 14px", marginBottom: 18, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, border: `1px solid ${P.border}` }}>
+        {["One lowercase [a-z]", "One numeral [0-9]", "One uppercase [A-Z]", "Minimum 8 characters"].map(r =>
+          <div key={r} style={{ fontSize: 12, color: P.text, display: "flex", alignItems: "center", gap: 6 }}>
+            <div style={{ width: 6, height: 6, borderRadius: 3, background: f.pw.length >= 8 ? P.green : P.border }} />{r}
+          </div>
+        )}
+      </div>
+      <div style={{ display: "flex", justifyContent: "space-between" }}>
+        <Btn v="secondary" full={false} onClick={() => setStep(6)}>Back</Btn>
+        <Btn full={false} onClick={() => setStep(8)} disabled={!f.pw}>Get In</Btn>
+      </div>
+    </>,
+
+    // 8: Done
+    () => <div style={{ textAlign: "center", padding: "20px 0" }}>
+      <div style={{ width: 72, height: 72, borderRadius: 36, background: P.greenBg, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px", fontSize: 36 }}>🎉</div>
+      <h2 style={{ fontSize: 24, fontWeight: 700, color: P.dark, margin: "0 0 8px" }}>Welcome to Alaan{f.name ? `, ${f.name.split(" ")[0]}` : ""}!</h2>
+      <p style={{ fontSize: 14, color: P.text, margin: "0 0 24px", lineHeight: 1.6 }}>Your account is ready.<br />Next step: complete your business verification (KYB).</p>
+      <div style={{ background: P.bg, borderRadius: 14, padding: 20, textAlign: "left", marginBottom: 20, border: `1px solid ${P.border}` }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: P.brand, marginBottom: 12, textTransform: "uppercase", letterSpacing: 1 }}>Your profile</div>
+        {[
+          ["Primary interest", f.primary],
+          ["Also interested in", f.secondary.length > 0 ? f.secondary.join(", ") : "—"],
+          ["Department", f.dept],
+          ["Role", f.role],
+          ["Current method", f.method],
+          ["Company", `${f.co} (${f.size})`],
+        ].map(([l, v]) => <div key={l} style={{ display: "flex", justifyContent: "space-between", padding: "7px 0", borderBottom: `1px solid ${P.border}` }}>
+          <span style={{ fontSize: 12, color: P.text, flexShrink: 0 }}>{l}</span>
+          <span style={{ fontSize: 12, color: P.dark, fontWeight: 500, textAlign: "right", maxWidth: "60%", marginLeft: 12 }}>{v}</span>
+        </div>)}
+      </div>
+      <Btn onClick={reset}>Restart prototype</Btn>
+    </div>,
+  ];
+
+  return <div style={{ display: "flex", minHeight: "100vh", fontFamily: "'DM Sans',-apple-system,sans-serif", background: P.white }}>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <Left step={step} />
+    <div style={{
+      flex: 1, display: "flex", flexDirection: "column",
+      justifyContent: step >= 3 && step <= 5 ? "flex-start" : "center",
+      padding: step >= 3 && step <= 5 ? "28px 48px" : "36px 48px",
+      maxWidth: 520, margin: "0 auto", boxSizing: "border-box", minHeight: "100vh", overflowY: "auto",
+    }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+        <span style={{ fontSize: 12, color: P.light }}>Have an account? <span style={{ color: P.brand, fontWeight: 600, cursor: "pointer" }}>Sign in</span></span>
+        <span style={{ fontSize: 12, color: P.light, cursor: "pointer" }}>🌐 English ▾</span>
+      </div>
+      <Dots current={step} total={9} />
+      {screens[step]()}
+    </div>
+  </div>;
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
